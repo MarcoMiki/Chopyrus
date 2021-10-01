@@ -8,18 +8,29 @@ class Chorus:
         self.url = url
         self.login_response = requests.post(url=url + "/rest/v1/auth/loginWithKey", json={"apiKey": key})
         self.sessionID = self.login_response.json()["sessionId"]
-        self.headers = {"X-Chorus-Session": self.sessionID}
+        self.chorus_headers = {"X-Chorus-Session": self.sessionID}
 
-    # FUNCTIONS TO GET USER DATA AND EXPORT IT
+    # LOG OUT
+    def log_out(self):
+        """logs out from current session"""
+        requests.post(url=self.url + "/rest/v1/auth/logout")
+
+    # GET SITE DETAILS
+    def get_site_details(self):
+        """get site details"""
+        response = requests.get(url=self.url + "/rest/v1/environment)", headers=self.chorus_headers)
+        return response.json()
+
+    # GET USER DATA AND EXPORT IT
 
     def get_user_ids(self):
         """returns the IDs of all site users"""
-        response = requests.get(url=self.url + "/rest/v1/site/users", headers=self.headers)
+        response = requests.get(url=self.url + "/rest/v1/site/users", headers=self.chorus_headers)
         return response.json()["response"]
 
     def get_user_details(self, user_id):
         """given a user id, returns details for that user"""
-        response = requests.get(url=self.url + f"/rest/v1/users/{user_id}", headers=self.headers)
+        response = requests.get(url=self.url + f"/rest/v1/users/{user_id}", headers=self.chorus_headers)
         return response.json()
 
     def get_multiple_user_details(self):
@@ -28,7 +39,7 @@ class Chorus:
         body = {
             "userIds": ids_list
         }
-        response = requests.post(url=self.url + "/rest/v1/users/multi", json=body, headers=self.headers)
+        response = requests.post(url=self.url + "/rest/v1/users/multi", json=body, headers=self.chorus_headers)
         return response.json()
 
     def export_user_data(self, path):
@@ -38,7 +49,7 @@ class Chorus:
         df = pandas.DataFrame(data)
         df.to_csv(path, index=False, encoding="utf-8")
 
-    # FUNCTIONS TO CREATE USERS
+    # CREATE USERS
 
     def create_site_user(self, name, email, username, description, home_shortcut):
         """given name, email, username, description and True/False on whether the home shortcut should be displayed,
@@ -50,7 +61,7 @@ class Chorus:
             "name": name,
             "username": username
         }
-        requests.post(url=self.url + "/rest/v1/site/users", json=new_user, headers=self.headers)
+        requests.post(url=self.url + "/rest/v1/site/users", json=new_user, headers=self.chorus_headers)
 
     def create_space_user(self, space_id, name, email, username, description, home_shortcut):
         """given name, email, username, space ID, description and True/False on whether the home shortcut should be
@@ -62,7 +73,7 @@ class Chorus:
             "name": name,
             "username": username
         }
-        requests.post(url=self.url + f"/rest/v1/spaces/{space_id}/users", json=new_user, headers=self.headers)
+        requests.post(url=self.url + f"/rest/v1/spaces/{space_id}/users", json=new_user, headers=self.chorus_headers)
 
     def create_multiple_space_users(self, path):
         """given the path to a .csv spreadsheet, it creates multiple users in a specific space from the details within
@@ -75,7 +86,7 @@ class Chorus:
             username = entry["username"]
             email = entry["email"]
             description = entry["description"]
-            home_shortcut= entry["home_shortcut"]
+            home_shortcut = entry["home_shortcut"]
             space_id = entry["space_id"]
             self.create_space_user(space_id=space_id, name=name, email=email, username=username,
                                    description=description, home_shortcut=home_shortcut)
@@ -94,11 +105,11 @@ class Chorus:
             self.create_site_user(name=name, email=email, username=username, description=description,
                                   home_shortcut=home_shortcut)
 
-    # FUNCTIONS TO DELETE USERS
+    # DELETE USERS
 
     def delete_user(self, user_id):
         """given a user id, it deletes that user"""
-        requests.delete(url=self.url + f"/rest/v1/users/{user_id}", headers=self.headers)
+        requests.delete(url=self.url + f"/rest/v1/users/{user_id}", headers=self.chorus_headers)
 
     def delete_multiple_users(self, path):
         """given a path to a .csv file containing multiple user ids, it deletes those users. The column header name for
@@ -109,7 +120,7 @@ class Chorus:
         for entry in ids_list:
             self.delete_user(entry)
 
-    # FUNCTIONS TO MODIFY USERS
+    # MODIFY USER DETAILS
 
     def patch_user(self, user_id, value_type, value):
         """given a user id, value type and a new value it modifies that value for that user. Value types available are
@@ -117,14 +128,17 @@ class Chorus:
         patch = {
             value_type: value
         }
-        requests.patch(url=self.url + f"/rest/v1/users/{user_id}", json=patch, headers=self.headers)
+        requests.patch(url=self.url + f"/rest/v1/users/{user_id}", json=patch, headers=self.chorus_headers)
 
     def patch_multiple_users(self, path, value_type):
         """given a value type and a .csv file containing user ids and new values, it modifies those values for those
-        users. Value types available are name, email or description"""
+        users. Value types available are name, email or description. the new values have to be in a column whose
+        header is the name of the value type"""
         data = pandas.read_csv(path)
         df = pandas.DataFrame(data)
         ids_list = df["id"].tolist()
         for entry in ids_list:
             value = df.at[ids_list.index(entry), value_type]
             self.patch_user(entry, value_type=value_type, value=value)
+
+
