@@ -8,3 +8,5 @@ path_to_desktop = "~/desktop/csv.csv"
 chorus = Chorus(key=key, url=url)
 
 # test methods here
+
+print(chorus.get_file_temp_url(file_id="66285384287", blur=220))
