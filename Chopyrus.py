@@ -171,7 +171,7 @@ class Chorus:
         }
         response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/temporaryDirectUrl",
                                 headers=self.chorus_headers, params=params)
-        return response.text
+        return response.json()["response"]
 
     def get_file_url(self, file_id, **kwargs):
         """"given a file id it creates a  Direct Url and returns it.  It needs a file_id argument as well as any
@@ -182,7 +182,7 @@ class Chorus:
         }
         response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/DirectUrl", headers=self.chorus_headers,
                                 params=params)
-        return response.text
+        return response.json()["response"]
 
     # GET AND MODIFY METADATA
 
