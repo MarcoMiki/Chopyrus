@@ -1,5 +1,6 @@
 import requests
 import pandas
+import time
 
 
 class Chorus:
@@ -13,7 +14,8 @@ class Chorus:
     # LOG OUT
     def log_out(self):
         """logs out from current session"""
-        requests.post(url=self.url + "/rest/v1/auth/logout")
+        time.sleep(5)
+        requests.post(url=self.url + "/rest/v1/auth/logout", headers=self.chorus_headers)
 
     # GET SITE DETAILS
     def get_site_details(self):
@@ -141,4 +143,60 @@ class Chorus:
             value = df.at[ids_list.index(entry), value_type]
             self.patch_user(entry, value_type=value_type, value=value)
 
+    # GET FILES DETAILS
+    def get_multiple_file_ids(self, container_id):
+        """given a container id it returns a list of all the ids for the files in it"""
+        response = requests.get(url=self.url + f"/rest/v1/folders/{container_id}/files", headers=self.chorus_headers)
+        folder_files_details = response.json()["response"]
+        ids = [file["id"] for file in folder_files_details]
+        return ids
+
+    def get_file_details(self, file_id):
+        """given a file id it returns its details"""
+        response = requests.get(url=self.url + f"/rest/v1/files/{file_id}", headers=self.chorus_headers)
+        return response.json()
+
+    def get_multiple_file_details(self, container_id):
+        """given a container id it returns details for all the files within, in a list"""
+        files = self.get_multiple_file_ids(container_id)
+        details_list = [self.get_file_details(file) for file in files]
+        return details_list
+
+    # GET FILE DIRECT URLS
+
+    def get_file_temp_url(self, file_id, **kwargs):
+        """"given a file it creates a temporary Direct Url and returns it. It needs a file_id argument as well as any
+        of these other optional arguments: width, height"""
+        params = {
+            name: kwargs[name] for name in kwargs if kwargs[name] is not None
+        }
+        response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/temporaryDirectUrl",
+                                headers=self.chorus_headers, params=params)
+        return response.text
+
+    def get_file_url(self, file_id):
+        """"given a file id it creates a  Direct Url and returns it"""
+        response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/DirectUrl", headers=self.chorus_headers)
+        return response.text
+
+    # GET AND MODIFY METADATA
+
+    def get_file_metadata_fields(self, file_id):
+        """given a file id it returns its metadata fields"""
+        response = requests.get(url=self.url + f"/rest/v1/content/{file_id}/metadataFields",
+                                headers=self.chorus_headers)
+        return response.json()["response"]
+
+    def get_file_metadata_value(self, file_id, field):
+        """given a file id and metadata field, it returns the value for that field"""
+        response = requests.get(url=self.url + f"/rest/v1/content/{file_id}/metadata/{field}",
+                                headers=self.chorus_headers)
+        return response.json()["text"]["values"]
+
+    def get_file_metadata(self, file_id):
+        """given a file id it returns all available metadata fields and values for it"""
+        fields = self.get_file_metadata_fields(file_id)
+        metadata = {field: self.get_file_metadata_value(file_id, field) for field in fields
+                    if len(self.get_file_metadata_value(file_id, field)) != 0}
+        return metadata
 
