@@ -80,7 +80,7 @@ class Chorus:
     def create_multiple_space_users(self, path):
         """given the path to a .csv spreadsheet, it creates multiple users in a specific space from the details within
         it. The spreadsheet needs to contain the following headers: name, username, email, description, space_id,
-        home_shortcut (boolean value)"""
+        home_shortcut"""
         user_data = pandas.read_csv(path)
         users = pandas.DataFrame.to_dict(user_data, orient="records")
         for entry in users:
@@ -95,7 +95,7 @@ class Chorus:
 
     def create_multiple_site_users(self, path):
         """given the path to a .csv spreadsheet, it creates multiple users from the details within it. The spreadsheet
-        needs to contain the following headers: name, username, email, description, home_shortcut (boolean value)"""
+        needs to contain the following headers: name, username, email, description, home_shortcut"""
         user_data = pandas.read_csv(path)
         users = pandas.DataFrame.to_dict(user_data, orient="records")
         for entry in users:
@@ -166,17 +166,24 @@ class Chorus:
 
     def get_file_temp_url(self, file_id, **kwargs):
         """"given a file it creates a temporary Direct Url and returns it. It needs a file_id argument as well as any
-        of these other optional arguments: width, height"""
+        of these other optional arguments: blur, crop.width, crop.height, crop.x, crop.y, download, dpi, filename, fit,
+        format, height, width, page, quality, rotate"""
         params = {
-            name: kwargs[name] for name in kwargs if kwargs[name] is not None
+            f"settings.{attribute}": kwargs[attribute] for attribute in kwargs
         }
         response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/temporaryDirectUrl",
                                 headers=self.chorus_headers, params=params)
         return response.text
 
-    def get_file_url(self, file_id):
-        """"given a file id it creates a  Direct Url and returns it"""
-        response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/DirectUrl", headers=self.chorus_headers)
+    def get_file_url(self, file_id, **kwargs):
+        """"given a file id it creates a  Direct Url and returns it.  It needs a file_id argument as well as any
+        of these other optional arguments: blur, crop.width, crop.height, crop.x, crop.y, download, dpi, filename, fit,
+        format, height, width, page, quality, rotate"""
+        params = {
+            f"settings.{attribute}": kwargs[attribute] for attribute in kwargs
+        }
+        response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/DirectUrl", headers=self.chorus_headers,
+                                params=params)
         return response.text
 
     # GET AND MODIFY METADATA
