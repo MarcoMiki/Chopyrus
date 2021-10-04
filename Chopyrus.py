@@ -1,6 +1,5 @@
 import requests
 import pandas
-import time
 
 
 class Chorus:
@@ -14,7 +13,6 @@ class Chorus:
     # LOG OUT
     def log_out(self):
         """logs out from current session"""
-        time.sleep(5)
         requests.post(url=self.url + "/rest/v1/auth/logout", headers=self.chorus_headers)
 
     # GET SITE DETAILS
