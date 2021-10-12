@@ -190,6 +190,14 @@ class Chorus:
         file_urls = {file: self.get_file_temp_url(file) for file in files}
         return file_urls
 
+    def get_multiple_files_urls(self, container_id):
+        """given a container id, returns a dictionary of of temporary direct URLs for these files and their internal
+        id (not the GUID ids)"""
+        # currently not working due to a bug
+        files = self.get_multiple_file_ids(container_id)
+        file_urls = {file: self.get_file_url(file) for file in files}
+        return file_urls
+
     def export_multiple_files_temp_urls(self, container_id, path):
         """given a container id and a path, it downloads a spreadsheet with file ids and temporary direct urls for
         these files"""
@@ -197,6 +205,12 @@ class Chorus:
         df = pandas.DataFrame(list(file_urls.items()), columns = ['id', 'link'], index=None)
         df.to_csv(path, index=False, encoding="utf-8")
 
+    def export_multiple_files_urls(self, container_id, path):
+        """given a container id and a path, it downloads a spreadsheet with file ids and direct urls for these files"""
+        # currently not working due to a bug
+        file_urls = self.get_multiple_files_urls(container_id)
+        df = pandas.DataFrame(list(file_urls.items()), columns = ['id', 'link'], index=None)
+        df.to_csv(path, index=False, encoding="utf-8")
 
     # GET AND MODIFY METADATA
 
