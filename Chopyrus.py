@@ -15,12 +15,6 @@ class Chorus:
         """logs out from current session"""
         requests.post(url=self.url + "/rest/v1/auth/logout", headers=self.chorus_headers)
 
-    # GET SITE DETAILS
-    def get_site_details(self):
-        """get site details"""
-        response = requests.get(url=self.url + "/rest/v1/environment)", headers=self.chorus_headers)
-        return response.json()
-
     # GET USER DATA AND EXPORT IT
 
     def get_user_ids(self):
@@ -160,6 +154,11 @@ class Chorus:
         details_list = [self.get_file_details(file) for file in files]
         return details_list
 
+    def get_item_details(self, item_id):
+        """given an item id it returns its details, works on containers as well as files"""
+        response = requests.get(url=self.url + f"/rest/v1/content/{item_id}", headers=self.chorus_headers)
+        return response.json()
+
     # GET FILE DIRECT URLS
 
     def get_file_temp_url(self, file_id, **kwargs):
@@ -176,13 +175,28 @@ class Chorus:
     def get_file_url(self, file_id, **kwargs):
         """"given a file id it creates a  Direct Url and returns it.  It needs a file_id argument as well as any
         of these other optional arguments: blur, crop.width, crop.height, crop.x, crop.y, download, dpi, filename, fit,
-        format, height, width, page, quality, rotate"""
+        format, height, width, page, quality, rotate. Only works with the GUID file id"""
         params = {
             f"settings.{attribute}": kwargs[attribute] for attribute in kwargs
         }
         response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/DirectUrl", headers=self.chorus_headers,
                                 params=params)
         return response.json()["response"]
+
+    def get_multiple_files_temp_urls(self, container_id):
+        """given a container id, returns a dictionary of of temporary direct URLs for these files and their internal
+        id (not the GUID ids)"""
+        files = self.get_multiple_file_ids(container_id)
+        file_urls = {file: self.get_file_temp_url(file) for file in files}
+        return file_urls
+
+    def export_multiple_files_temp_urls(self, container_id, path):
+        """given a container id and a path, it downloads a spreadsheet with file ids and temporary direct urls for
+        these files"""
+        file_urls = self.get_multiple_files_temp_urls(container_id)
+        df = pandas.DataFrame(list(file_urls.items()), columns = ['id', 'link'], index=None)
+        df.to_csv(path, index=False, encoding="utf-8")
+
 
     # GET AND MODIFY METADATA
 
@@ -204,4 +218,22 @@ class Chorus:
         metadata = {field: self.get_file_metadata_value(file_id, field) for field in fields
                     if len(self.get_file_metadata_value(file_id, field)) != 0}
         return metadata
+
+    def update_metadata_on_file(self, file_id, field):
+        """updates metadata value for a field on a file. Replaces the value on single-value fields, appends it on
+        multi-value fields"""
+
+    def replace_metadata_on_file(self, file_id, field):
+        """replace metadata value for a field on a file"""
+        ...
+
+    def delete_metadata_on_file(self):
+        """delete metadata value for a field on a file"""
+        ...
+
+    def update_site_vocabulary(self, field, mode):
+        """Replace or Append to the site vocabulary for a given field. Choose mode=replace to replace and mode=append
+        to append"""
+        ...
+
 
