@@ -148,6 +148,11 @@ class Chorus:
         response = requests.get(url=self.url + f"/rest/v1/files/{file_id}", headers=self.chorus_headers)
         return response.json()
 
+    def get_file_name(self, file_id):
+        """given a file id it returns the file name for that file"""
+        data = self.get_file_details(file_id)
+        return data["filename"]
+
     def get_multiple_file_details(self, container_id):
         """given a container id it returns details for all the files within, in a list"""
         files = self.get_multiple_file_ids(container_id)
@@ -184,29 +189,27 @@ class Chorus:
         return response.json()["response"]
 
     def get_multiple_files_temp_urls(self, container_id):
-        """given a container id, returns a dictionary of of temporary direct URLs for these files and their internal
-        id (not the GUID ids)"""
+        """given a container id it returns a dictionary of temporary direct URLs for these files and their file names"""
         files = self.get_multiple_file_ids(container_id)
-        file_urls = {file: self.get_file_temp_url(file) for file in files}
+        file_urls = {self.get_file_name(file): self.get_file_temp_url(file) for file in files}
         return file_urls
 
     def get_multiple_files_urls(self, container_id):
-        """given a container id, returns a dictionary of of temporary direct URLs for these files and their internal
-        id (not the GUID ids)"""
+        """given a container id it returns a dictionary of temporary direct URLs for these files and their file names"""
         # currently not working due to a bug
         files = self.get_multiple_file_ids(container_id)
-        file_urls = {file: self.get_file_url(file) for file in files}
+        file_urls = {self.get_file_name(file): self.get_file_url(file) for file in files}
         return file_urls
 
     def export_multiple_files_temp_urls(self, container_id, path):
-        """given a container id and a path, it downloads a spreadsheet with file ids and temporary direct urls for
+        """given a container id and a path it downloads a spreadsheet with file names and temporary direct urls for
         these files"""
         file_urls = self.get_multiple_files_temp_urls(container_id)
         df = pandas.DataFrame(list(file_urls.items()), columns = ['id', 'link'], index=None)
         df.to_csv(path, index=False, encoding="utf-8")
 
     def export_multiple_files_urls(self, container_id, path):
-        """given a container id and a path, it downloads a spreadsheet with file ids and direct urls for these files"""
+        """given a container id and a path it downloads a spreadsheet with file names and direct urls for these files"""
         # currently not working due to a bug
         file_urls = self.get_multiple_files_urls(container_id)
         df = pandas.DataFrame(list(file_urls.items()), columns = ['id', 'link'], index=None)
