@@ -184,7 +184,7 @@ class Chorus:
         params = {
             f"settings.{attribute}": kwargs[attribute] for attribute in kwargs
         }
-        response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/DirectUrl", headers=self.chorus_headers,
+        response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/directUrl", headers=self.chorus_headers,
                                 params=params)
         return response.json()["response"]
 
@@ -196,7 +196,6 @@ class Chorus:
 
     def get_multiple_files_urls(self, container_id):
         """given a container id it returns a dictionary of temporary direct URLs for these files and their file names"""
-        # currently not working due to a bug
         files = self.get_multiple_file_ids(container_id)
         file_urls = {self.get_file_name(file): self.get_file_url(file) for file in files}
         return file_urls
@@ -210,7 +209,6 @@ class Chorus:
 
     def export_multiple_files_urls(self, container_id, path):
         """given a container id and a path it downloads a spreadsheet with file names and direct urls for these files"""
-        # currently not working due to a bug
         file_urls = self.get_multiple_files_urls(container_id)
         df = pandas.DataFrame(list(file_urls.items()), columns = ['id', 'link'], index=None)
         df.to_csv(path, index=False, encoding="utf-8")
