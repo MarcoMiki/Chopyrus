@@ -113,7 +113,7 @@ class Chorus:
         requests.delete(url=self.url + f"/rest/v1/users/{user_id}", headers=self.chorus_headers)
 
     def delete_multiple_users(self, path):
-        """given a path to a .csv file containing multiple user ids, it deletes those users. The column header name for
+        """given a path to a .csv file containing multiple user ids, it deletes those users. The column header for
         the id values needs to be id"""
         data = pandas.read_csv(path)
         ids_df = pandas.DataFrame(data)
