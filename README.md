@@ -15,6 +15,16 @@ Using a specific API key basically logs you in as that entity, so you may want t
 
 Note: you can find ids for folders, spaces, collections and smart collections (collectively referred as "container" here) within the Chorus GUI. When a method references the file id you can use the file reference that you can find in Chorus too. When a method references the item id you will have to use the id provided by the relevant API methods. User ids can only be obtained via API methods.
 
+# Examples
+
+A small project I built by using these methods is The Chorus User Export Tool:
+
+https://chorus-user-export-tool.herokuapp.com/
+
+https://github.com/MarcoMiki/Chorus-User-Export-Tool 
+
+I modified the method to export users slightly so that rather than downloading to a fixed path is downloaded from the browser instead. Other than that I simply placed the Chopyrus.py file (renamed to Chorus.py because I like to confuse myself) in the same folder as the main.py file and imported it in there. The main.py file in this repo is another example of how to use Chopyrus: simply import it and then initialise a class with an API key and URL. You can then run the methods there.
+
 
 # Methods
 
