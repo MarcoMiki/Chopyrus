@@ -33,7 +33,7 @@ class Chorus:
     def get_user_details(self, user_id):
         """given a user id, returns details for that user"""
         response = requests.get(url=self.url + f"/rest/v1/users/{user_id}", headers=self.chorus_headers)
-        return response.json()
+        return response.json()["response"]
 
     def get_multiple_user_details(self):
         """given a list of ids, returns details for them"""
@@ -46,8 +46,7 @@ class Chorus:
 
     def export_user_data(self, path):
         """given a path to export to, downloads a .csv file with details for all site's users"""
-        user_details = self.get_multiple_user_details()
-        data = user_details["response"]
+        data = self.get_multiple_user_details()
         df = pandas.DataFrame(data)
         df.to_csv(path, index=False, encoding="utf-8")
 
@@ -305,7 +304,7 @@ class Chorus:
         """given a field and a space id, it returns that space's vocabulary for that field"""
         response = requests.get(url=self.url + f"/rest/v1/spaces/{space_id}/metadata/{field}/vocab",
                                 headers=self.chorus_headers)
-        return response.json()
+        return response.json()["values"]
 
     def update_site_vocabulary(self, field, value):
         """add a list of new values to the site vocabulary for a given field. Use a list even if you are only sending a
@@ -331,38 +330,67 @@ class Chorus:
                                 headers=self.chorus_headers)
         print(response)
 
-    def update_space_vocabulary(self, field, space_id):
+    def update_space_vocabulary(self, field, space_id, value):
         """add a list of new values to the space vocabulary for a given field and space. Use a list even if you are
         only sending a single value"""
         payload = {
-
-        }
+                "mode": "REPLACE",
+                "tagName": field,
+                "values": value
+            }
         response = requests.patch(url=self.url + f"/rest/v1/spaces/{space_id}/metadata/{field}/vocab", json=payload,
                                   headers=self.chorus_headers)
         print(response)
 
-    def replace_space_vocabulary(self, field, space_id):
+    def replace_space_vocabulary(self, field, space_id, value):
         """replace the space vocabulary for a given field and space with a given list of values. Use a list even if you
         are only sending a single value"""
         payload = {
-
+            "mode": "REPLACE",
+            "tagName": field,
+            "values": value
         }
         response = requests.put(url=self.url + f"/rest/v1/spaces/{space_id}/metadata/{field}/vocab", json=payload,
                                   headers=self.chorus_headers)
         print(response)
 
-    def export_site_vocabulary(self):
+    def export_site_vocabulary(self, path, field):
         """"""
-        ...
+        data = self.get_site_vocabulary(field=field)
+        df = pandas.DataFrame({field:data})
+        df.to_csv(path, index=False, encoding="utf-8")
 
-    def export_space_vocabulary(self, space_id):
+    def export_space_vocabulary(self, path, field, space_id):
         """"""
-        ...
+        data = self.get_space_vocabulary(field=field, space_id=space_id)
+        df = pandas.DataFrame({field: data})
+        df.to_csv(path, index=False, encoding="utf-8")
 
-    def import_site_vocabulary(self):
+    def update_site_vocabulary_from_csv(self, path, field):
         """"""
-        ...
+        data = pandas.read_csv(path)
+        df = pandas.DataFrame(data)
+        values = df[field].tolist()
+        self.update_site_vocabulary(field=field, value=values)
 
-    def import_space_vocabulary(self):
+    def replace_site_vocabulary_from_csv(self, path, field):
         """"""
-        ...
+        data = pandas.read_csv(path)
+        df = pandas.DataFrame(data)
+        values = df[field].tolist()
+        self.replace_site_vocabulary(field=field, value=values)
+
+    def update_space_vocabulary_from_csv(self, path, field, space_id):
+        """"""
+        data = pandas.read_csv(path)
+        df = pandas.DataFrame(data)
+        values = df[field].tolist()
+        self.update_space_vocabulary(field=field, value=values, space_id=space_id)
+
+    def replace_space_vocabulary_from_csv(self, path, field, space_id):
+        """"""
+        data = pandas.read_csv(path)
+        df = pandas.DataFrame(data)
+        values = df[field].tolist()
+        self.replace_space_vocabulary(field=field, value=values, space_id=space_id)
+
