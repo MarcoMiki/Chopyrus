@@ -4,7 +4,7 @@ import urllib.parse
 
 class Chorus:
     def __init__(self, key, url):
-        '''Authenticates to a Chorus site. Requires URL and a site API key'''
+        '''Authenticates to a Chorus site. Requires a Chorus URL and an API key'''
         self.url = url
         self.login_response = requests.post(url=url + "/rest/v1/auth/loginWithKey", json={"apiKey": key})
         self.sessionID = self.login_response.json()["sessionId"]
