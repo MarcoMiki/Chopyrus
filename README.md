@@ -25,12 +25,14 @@ Note: you can find ids for folders, spaces, collections and smart collections (c
 Logs out from current session.
 
 
+
 **SEARCH**
 
 **make_general_global_search(query)**
 
 
 Makes a general global search from a query. Takes a string and returns a list of file ids.
+
 
 
 
@@ -41,10 +43,15 @@ Makes a general global search from a query. Takes a string and returns a list of
 
 Returns a list with the IDs of all the users for the site.
 
+
 **get_user_details(user_id)**
+
+
 Takes a user id and returns details for that user.
 
+
 **get_multiple_user_details**
+
 
 Takes a list of user ids and returns their details.
 
