@@ -1,6 +1,6 @@
 import requests
 import pandas
-
+import urllib.parse
 
 class Chorus:
     def __init__(self, key, url):
@@ -14,6 +14,14 @@ class Chorus:
     def log_out(self):
         """logs out from current session"""
         requests.post(url=self.url + "/rest/v1/auth/logout", headers=self.chorus_headers)
+
+    #  SEARCH
+
+    def make_general_global_search(self, query):
+        """Make a search from a query. This uses the general global search. Returns a list of file ids"""
+        query = urllib.parse.quote_plus(query)
+        response = requests.get(url=self.url + f"/rest/v1/search?query={query}", headers=self.chorus_headers)
+        return response.json()["response"]
 
     # GET USER DATA AND EXPORT IT
 
@@ -160,9 +168,11 @@ class Chorus:
         return details_list
 
     def get_item_details(self, item_id):
-        """given an item id it returns its details, works on containers as well as files"""
+        """given an item id it returns its details, works on containers as well as files. It takes the GUID for folders
+        but won't work with the file id available in the GUI. You will need the ID received from other api calls for
+        files."""
         response = requests.get(url=self.url + f"/rest/v1/content/{item_id}", headers=self.chorus_headers)
-        return response.json()
+        return response.json()["details"]
 
     # GET FILE DIRECT URLS
 
@@ -215,40 +225,144 @@ class Chorus:
 
     # GET AND MODIFY METADATA
 
-    def get_file_metadata_fields(self, file_id):
-        """given a file id it returns its metadata fields"""
-        response = requests.get(url=self.url + f"/rest/v1/content/{file_id}/metadataFields",
+    def get_all_file_metadata(self, file_id):
+        """given a file id, it returns metadata for all fields, including the ones that are empty"""
+        response = requests.get(url=self.url + f"/rest/v1/files/{file_id}/metadata",
+                                headers=self.chorus_headers)
+        return response.json()
+
+    def get_item_metadata_fields(self, item_id):
+        """given a file or container id it returns its metadata fields. It takes the GUID for folders but won't work
+        with the file id available in the GUI. You will need the ID received from other api calls for files."""
+        response = requests.get(url=self.url + f"/rest/v1/content/{item_id}/metadataFields",
                                 headers=self.chorus_headers)
         return response.json()["response"]
 
-    def get_file_metadata_value(self, file_id, field):
-        """given a file id and metadata field, it returns the value for that field"""
-        response = requests.get(url=self.url + f"/rest/v1/content/{file_id}/metadata/{field}",
+    def get_item_metadata_value(self, item_id, field):
+        """given a file or container's id and metadata field, it returns the value for that field.It takes the GUID for
+        folders but won't work with the file id available in the GUI. You will need the ID received from other api calls
+        for files."""
+        response = requests.get(url=self.url + f"/rest/v1/content/{item_id}/metadata/{field}",
                                 headers=self.chorus_headers)
         return response.json()["text"]["values"]
 
-    def get_file_metadata(self, file_id):
-        """given a file id it returns all available metadata fields and values for it"""
-        fields = self.get_file_metadata_fields(file_id)
-        metadata = {field: self.get_file_metadata_value(file_id, field) for field in fields
-                    if len(self.get_file_metadata_value(file_id, field)) != 0}
+    def get_item_metadata(self, file_id):
+        """given a file id it returns all metadata values for fields that are not empty. It takes the GUID for folders
+        but won't work with the file id available in the GUI. You will need the ID received from other api calls for
+        files."""
+        fields = self.get_item_metadata_fields(file_id)
+        metadata = {field: self.get_item_metadata_value(file_id, field) for field in fields
+                    if len(self.get_item_metadata_value(file_id, field)) != 0}
         return metadata
 
-    def update_metadata_on_file(self, file_id, field):
-        """updates metadata value for a field on a file. Replaces the value on single-value fields, appends it on
-        multi-value fields"""
+    def update_metadata_on_item(self, item_id, field, value):
+        """updates metadata value for a field on a file or container. Replaces the value on single-value fields, appends
+         it on multi-value fields. It takes the GUID for folders but won't work with the file id available in the GUI.
+         You will need the ID received from other api calls for files. Use a list even if you are adding a single
+         value"""
+        payload = {
+                "text": {
+                    "values": value
+                     }
+                }
 
-    def replace_metadata_on_file(self, file_id, field):
-        """replace metadata value for a field on a file"""
+        response = requests.patch(url=self.url + f"/rest/v1/content/{item_id}/metadata/{field}", json=payload,
+                                  headers=self.chorus_headers)
+        return response.json()
+
+    def replace_metadata_on_item(self, item_id, field, value):
+        """replace metadata value for a field on a file or container. It takes the GUID for folders but won't work with
+        the file id available in the GUI. You will need the ID received from other api calls for files. To clear all
+        values for a file and field use this method with an empty value. Use a list even if you are adding a single
+         value"""
+        payload = {
+            "text": {
+                "values": value
+            }
+        }
+        response = requests.put(url=self.url + f"/rest/v1/content/{item_id}/metadata/{field}", json=payload,
+                                headers=self.chorus_headers)
+        return response.json()
+
+    def delete_metadata_on_item(self, item_id, field, values):
+        """delete metadata value for a field on a file or container. It takes the GUID for folders but won't work with
+        the file id available in the GUI. You will need the ID received from other api calls for files. This only works
+        with text type values"""
+        payload = ""
+        for value in values:
+            value = urllib.parse.quote_plus(value)
+            payload = payload + f"details.text.values={value}&"
+        response = requests.delete(url=self.url + f"/rest/v1/content/{item_id}/metadata/{field}?{payload}",
+                                   headers=self.chorus_headers)
+        print(response.json())
+
+    def get_site_vocabulary(self, field):
+        """given a field, it returns the site vocabulary for that field"""
+        response = requests.get(url=self.url + f"/rest/v1/site/metadata/{field}/vocab", headers=self.chorus_headers)
+        return response.json()["values"]
+
+    def  get_space_vocabulary(self, field, space_id):
+        """given a field and a space id, it returns that space's vocabulary for that field"""
+        response = requests.get(url=self.url + f"/rest/v1/spaces/{space_id}/metadata/{field}/vocab",
+                                headers=self.chorus_headers)
+        return response.json()
+
+    def update_site_vocabulary(self, field, value):
+        """add a list of new values to the site vocabulary for a given field. Use a list even if you are only sending a
+        single value"""
+        payload = {
+            "mode": "REPLACE",
+            "tagName": field,
+            "values": value
+        }
+        response = requests.patch(url=self.url + f"/rest/v1/site/metadata/{field}/vocab", json=payload,
+                                  headers=self.chorus_headers)
+        print(response)
+
+    def replace_site_vocabulary(self, field, value):
+        """replace the site vocabulary for a given field with the given value or values. Use a list even if you are
+        only sending a single value"""
+        payload = {
+                "mode": "REPLACE",
+                "tagName": field,
+                "values": value
+            }
+        response = requests.put(url=self.url + f"/rest/v1/site/metadata/{field}/vocab", json=payload,
+                                headers=self.chorus_headers)
+        print(response)
+
+    def update_space_vocabulary(self, field, space_id):
+        """add a list of new values to the space vocabulary for a given field and space. Use a list even if you are
+        only sending a single value"""
+        payload = {
+
+        }
+        response = requests.patch(url=self.url + f"/rest/v1/spaces/{space_id}/metadata/{field}/vocab", json=payload,
+                                  headers=self.chorus_headers)
+        print(response)
+
+    def replace_space_vocabulary(self, field, space_id):
+        """replace the space vocabulary for a given field and space with a given list of values. Use a list even if you
+        are only sending a single value"""
+        payload = {
+
+        }
+        response = requests.put(url=self.url + f"/rest/v1/spaces/{space_id}/metadata/{field}/vocab", json=payload,
+                                  headers=self.chorus_headers)
+        print(response)
+
+    def export_site_vocabulary(self):
+        """"""
         ...
 
-    def delete_metadata_on_file(self):
-        """delete metadata value for a field on a file"""
+    def export_space_vocabulary(self, space_id):
+        """"""
         ...
 
-    def update_site_vocabulary(self, field, mode):
-        """Replace or Append to the site vocabulary for a given field. Choose mode=replace to replace and mode=append
-        to append"""
+    def import_site_vocabulary(self):
+        """"""
         ...
 
-
+    def import_space_vocabulary(self):
+        """"""
+        ...
