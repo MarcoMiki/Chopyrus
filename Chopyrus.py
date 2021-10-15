@@ -355,40 +355,46 @@ class Chorus:
         print(response)
 
     def export_site_vocabulary(self, path, field):
-        """"""
+        """given a field and a path, export a .csv file with the site vocabulary for that field"""
         data = self.get_site_vocabulary(field=field)
         df = pandas.DataFrame({field:data})
         df.to_csv(path, index=False, encoding="utf-8")
 
     def export_space_vocabulary(self, path, field, space_id):
-        """"""
+        """given a metadata field key name, a space id and path, it exports that space's vocabulary for that field"""
         data = self.get_space_vocabulary(field=field, space_id=space_id)
         df = pandas.DataFrame({field: data})
         df.to_csv(path, index=False, encoding="utf-8")
 
     def update_site_vocabulary_from_csv(self, path, field):
-        """"""
+        """given a metadata field key name and a path, it adds to the site's vocabulary for that field using the rows in
+         the spreadsheet. The header of the column with the values needs to be the key name of the metadata field"""
         data = pandas.read_csv(path)
         df = pandas.DataFrame(data)
         values = df[field].tolist()
         self.update_site_vocabulary(field=field, value=values)
 
     def replace_site_vocabulary_from_csv(self, path, field):
-        """"""
+        """given a metadata field key name and path, it replaces the site's vocabulary for that field using the rows
+         in the spreadsheet. The header of the column with the values needs to be the key name of the metadata field"""
         data = pandas.read_csv(path)
         df = pandas.DataFrame(data)
         values = df[field].tolist()
         self.replace_site_vocabulary(field=field, value=values)
 
     def update_space_vocabulary_from_csv(self, path, field, space_id):
-        """"""
+        """given a metadata field key name, a space id and a path, it adds to that space's vocabulary for that field
+        using the rows in the spreadsheet. The header of the column with the values needs to be the key name of the
+        metadata field"""
         data = pandas.read_csv(path)
         df = pandas.DataFrame(data)
         values = df[field].tolist()
         self.update_space_vocabulary(field=field, value=values, space_id=space_id)
 
     def replace_space_vocabulary_from_csv(self, path, field, space_id):
-        """"""
+        """given a metadata field key name, a space id and a path, it replaces that space's vocabulary for that field
+        using the rows in the spreadsheet. The header of the column with the values needs to be the key name of the
+        metadata field"""
         data = pandas.read_csv(path)
         df = pandas.DataFrame(data)
         values = df[field].tolist()
