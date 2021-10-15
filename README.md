@@ -15,6 +15,7 @@ Using a specific API key basically logs you in as that entity, so you may want t
 
 Note: you can find ids for folders, spaces, collections and smart collections (collectively referred as "container" here) within the Chorus GUI. When a method references the file id you can use the file reference that you can find in Chorus too. When a method references the item id you will have to use the id provided by the relevant API methods. User ids can only be obtained via API methods.
 
+
 # Methods
 
 **LOG OUT**
@@ -28,11 +29,15 @@ Logs out from current session.
 
 **make_general_global_search(query)**
 
+
 Makes a general global search from a query. Takes a string and returns a list of file ids.
+
+
 
 **GET USER DATA AND EXPORT IT**
 
 **get_user_ids**
+
 
 Returns a list with the IDs of all the users for the site.
 
@@ -54,6 +59,7 @@ Takes a download path to export to and, downloads a .csv file with details for a
 Takes a few details and creates a user with them. Needs: name, email, username, description and a boolean True/False value on whether the home shortcut should be displayed for this user. The description value can be an empty string.
 
 **create_space_user(space_id, name, email, username, description, home_shortcut):**
+
 
 Takes a few details and creates a user with them. Needs: name, email, username, space id, description and a boolean True/False value on whether the home shortcut should be displayed for this user. The description value can be an empty string. 
 
