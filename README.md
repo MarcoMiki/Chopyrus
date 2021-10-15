@@ -9,7 +9,9 @@ Initialising the class requires an API key and a site URL which you can retrieve
 
 This means that all methods in this library relate to the site itself. You won't find methods to get a specific user's contexts or perform actions as that user.
 
-#Methods
+Initialising the class will also log you in to the Chorus site passed as an argument for it. Note that a valid API key is also required.
+
+# Methods
 
 this is where I will document my methods (I promise!)
 
