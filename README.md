@@ -178,13 +178,13 @@ Takes an item id and returns its details, works on containers as well as files. 
 **GET FILE DIRECT URLS**
 
 
-**get_file_temp_url(file_id, **kwargs) **
+get_file_temp_url(file_id, **kwargs)
 
 
 Takes a file id, creates a temporary Direct Url and returns it. It needs a file_id argument as well as any of these other optional arguments: blur, crop.width, crop.height, crop.x, crop.y, download, dpi, filename, fit, format, height, width, page, quality, rotate. See the Chorus API official documentation for explanation on what all these arguments do. Temporary Direct Urls have a short duration and are useful for applications that only need to download these files or send them somewhere else.
 
 
-**get_file_url(file_id, **kwargs) **
+get_file_url(file_id, **kwargs)
 
 
 Takes a file id, creates a permanent Direct Url and returns it. It needs a file_id argument as well as any of these other optional arguments: blur, crop.width, crop.height, crop.x, crop.y, download, dpi, filename, fit, format, height, width, page, quality, rotate. See the Chorus API official documentation for explanation on what all these arguments do. Direct Urls work until manually revoked from within Chorus or with an API call.
